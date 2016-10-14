@@ -10,7 +10,7 @@ def load_data(filename):
     return data
 
 
-class HW1:
+class TASK1:
     def __init__(self, data):
         self.data = data
         self.theta = self.estimate_theta()
@@ -38,7 +38,7 @@ class HW1:
         # pl.show()
 
 
-class HW2:
+class TASK2:
     def __init__(self, data):
         self.data = data
         self.theta = self.estimate_theta()
@@ -68,8 +68,8 @@ class HW2:
 
 if __name__ == '__main__':
     data = load_data('A.txt')
-    hw1 = HW1(data)
-    hw1.plot()
-    hw2 = HW2(data)
-    hw2.plot()
+    task1 = TASK1(data)
+    task1.plot()
+    task2 = TASK2(data)
+    task2.plot()
     pl.show()
