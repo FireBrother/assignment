@@ -1,0 +1,28 @@
+    .data
+    src: 10 9 8 7 6 5 4 3 2 1
+    .edata
+
+    .code
+    addi $t3, $zero, 20
+
+    addi $s0, $zero, 0
+L1: ble $t3, $s0, EL1
+
+    addi $s1, $s0, 0
+L2: ble $t3, $s1, EL2
+
+    lw $t0, $s0, src
+    lw $t1, $s1, src
+
+    ble $t1, $t0, IF
+    ble $zero, $zero, EI
+IF: sw $t1, $s0, src
+    sw $t0, $s1, src
+EI:
+    addi $s1, $s1, 2
+    ble $zero, $zero, L2
+EL2:
+    addi $s0, $s0, 2
+    ble $zero, $zero, L1
+EL1:
+    .ecode
