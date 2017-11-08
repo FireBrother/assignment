@@ -1,6 +1,28 @@
-# Hadoop环境搭建笔记
+# 《网络大数据管理理论和应用》实验报告
 
-## Ubuntu系统安装
+题目：Hadoop分布式环境安装
+
+要求：完成Hadoop分布式环境的搭建，并实现课上讲的in-mapper-combine的word count程序。
+
+ 
+
+姓名：吴先
+
+学号：1701214017
+
+日期：2017年11月8日
+
+ 
+
+实验环境：Ubuntu 16.04.3, Java 1.8.0_151, Hadoop 2.8.1
+
+ 
+
+[TOC]
+
+## Hadoop分布式环境搭建
+
+### Ubuntu系统安装
 
 宿主机windows server 2012，VMWare Workstation 8.0.3。
 
@@ -10,7 +32,7 @@
 
 ![屏幕快照 2017-10-18 下午4.51.08](/Users/wuxian/Documents/assignment/网络大数据/hw1/屏幕快照 2017-10-18 下午4.51.08.png)
 
-## 基础环境搭建
+### 基础环境搭建
 
 好吧openssh-server应该在这一项的，放在上面了。
 
@@ -40,7 +62,7 @@ Java(TM) SE Runtime Environment (build 1.8.0_151-b12)
 Java HotSpot(TM) 64-Bit Server VM (build 25.151-b12, mixed mode)
 ```
 
-## Hadoop安装
+### Hadoop安装
 
 验证安装：
 
@@ -54,7 +76,7 @@ From source with checksum 60125541c2b3e266cbf3becc5bda666
 This command was run using /usr/local/hadoop-2.8.1/share/hadoop/common/hadoop-common-2.8.1.jar
 ```
 
-## Hadoop测试
+### Hadoop测试
 
 ```
 wuxian@ubuntu:/usr/local$ hdfs namenode -format
@@ -189,7 +211,7 @@ wuxian@ubuntu:/usr/local$ jps
 
 至此，Hadoop环境配置完成。
 
-## Spark和Scala环境配置
+### Spark和Scala环境配置
 
 直接上最后的截图了，没有需要注意的地方。
 
