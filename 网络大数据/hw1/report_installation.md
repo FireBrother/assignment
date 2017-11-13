@@ -218,3 +218,118 @@ wuxian@ubuntu:/usr/local$ jps
 这里有一个很神奇的事。通过master:50070可以看到Hadoop的状态；通过162.105.86.107:8080能看到spark的状态；但是通过master:8080就看不到spark的状态。
 
 ![屏幕快照 2017-10-19 上午12.10.00](/Users/wuxian/Documents/assignment/网络大数据/hw1/屏幕快照 2017-10-19 上午12.10.00.png)
+
+## In-mapper-combine word count
+
+### 代码及分析
+
+以Hadoop教程中的mapreducde tutorial中WordCount v1.0作为蓝本进行修改，修改部分与修改思路在代码中以注释的方式给出。
+
+```java
+public class WordCount {
+
+    public static class TokenizerMapper
+            extends Mapper<Object, Text, Text, IntWritable> {
+
+        private Text word = new Text();
+        private IntWritable sum = new IntWritable();
+
+        public void map(Object key, Text value, Context context
+        ) throws IOException, InterruptedException {
+            // 在mapper内利用一个hashmap存储词频
+            HashMap<String, Integer> cache = new HashMap<String, Integer>();
+            StringTokenizer itr = new StringTokenizer(value.toString());
+            while (itr.hasMoreTokens()) {
+                String w = itr.nextToken();
+                // 不再是每遇到一个词就emit，而是在缓存中计数
+                if (cache.containsKey(w)) {
+                    cache.put(w, cache.get(w) + 1);
+                }
+                else {
+                    cache.put(w, 1);
+                }
+            }
+            // 最后将缓存中的<key, value>对一起emit
+            for (Map.Entry entry: cache.entrySet()) {
+                word.set(entry.getKey().toString());
+                sum.set((Integer)entry.getValue());
+                context.write(word, sum);
+            }
+        }
+    }
+
+    public static class IntSumReducer
+            extends Reducer<Text, IntWritable, Text, IntWritable> {
+        private IntWritable result = new IntWritable();
+
+        public void reduce(Text key, Iterable<IntWritable> values,
+                           Context context
+        ) throws IOException, InterruptedException {
+            int sum = 0;
+            // 因为原来的reducer就是对value进行计数，所以无需修改
+            for (IntWritable val : values) {
+                sum += val.get();
+            }
+            result.set(sum);
+            context.write(key, result);
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "word count");
+        job.setJarByClass(WordCount.class);
+        job.setMapperClass(TokenizerMapper.class);
+        job.setCombinerClass(IntSumReducer.class);
+        job.setReducerClass(IntSumReducer.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+}
+```
+
+### 结果及分析
+
+在本地通过`Build Artifacts`将`WordCount`类打包成jar，上传至服务器运行。
+
+WordCount v1.0的输出位于/output，in-mapper-combine的WordCount的输出位于/output2。
+
+通过`diff`进行对拍，保证程序正确性。通过head查看前20条结果。
+
+```
+wuxian@Master:~/wordcount$ hadoop jar wordcount_v1.0.jar WordCount /data/WordCount /output
+wuxian@Master:~/wordcount$ hadoop jar wordcount.jar WordCount /data/WordCount /output2
+wuxian@Master:~/wordcount$ hadoop fs -get /output
+wuxian@Master:~/wordcount$ hadoop fs -get /output2
+wuxian@Master:~/wordcount$ diff output/part-r-00000 output2/part-r-00000
+wuxian@Master:~/wordcount$ head -n 20 output4/part-r-00000
+!	52
+!!	2
+!!!	52
+!!!!	1
+!!!\"	1
+!!!_(album)	12
+!!Destroy-Oh-Boy!!	6
+!)	2
+!@#$	1
+!Action_Pact!	9
+!Audacious	1
+!Bang!	2
+!Hero	4
+!Hero_(album)	7
+!Kung	2
+!Kung_language	14
+!Oka_Tokat	16
+!PAUS3	7
+!T.O.O.H.!	17
+!Tang	2
+```
+
+### 关于效率
+
+直觉上来看，in-mapper-combine版本的mapper没有做到一边处理一边输出，而且还需要自己维护一个`HashMap`来计数，可能效率还不如原版程序。
+
+实验结果也是如此，原版程序平均耗时4分钟，in-mapper-combine平均耗时5分钟。
